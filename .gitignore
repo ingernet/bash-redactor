@@ -2,3 +2,5 @@
 .*.swp
 redactor-*.bash
 ziplogs/
+auditlog*
+*.log.gz
