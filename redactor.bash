@@ -25,7 +25,7 @@ scrubbed_fields=('CC' 'SSN')
 ## USAGE
 usage() { 
     echo "Usage: " 1>&2;
-    echo "Specify a few source files with: $0 -f file1.log.gz [file2.log.gz file3.log.gz etc.]" 1>&2;
+    echo "Specify a few source files with: $0 -f 'file1.log.gz [file2.log.gz file3.log.gz etc.]'" 1>&2;
     echo "Specify an entire source directory with: $0 -d directory_name" 1>&2;
     echo "";
 }
