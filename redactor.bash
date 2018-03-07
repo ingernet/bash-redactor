@@ -21,7 +21,7 @@ usage() {
 
 create_working_dir() {
     # create a subdir of /tmp
-    working_dir="/tmp/redactr_${rightnow}";
+    working_dir="/tmp/redactor_${rightnow}";
     mkdir -p ${working_dir} &&
     echo "working directory created: ${working_dir}";
 }
