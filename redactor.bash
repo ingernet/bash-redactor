@@ -3,20 +3,6 @@
 # KNOWN ISSUES:
 # Not recursive. Only goes down one level when passed a directory name. So logs/2018/january won't be parsed.
 
-# requirements:
-# 1. accept one or more text log.gz files
-# 2. for each file, produce a redacted copy of the file that has been gzipped - meaning...logcopy.gz? or just logcopy.log?
-# 3. create an audit log with the following info: 
-# 	- name of each file that was processed
-# 	- count of the number of lines in that file
-# 	- count of total number of lines redacted from the log file
-# 	- anything else that is pertinent
-# 	- MUST NOT contain info from the redacted lines
-# 4. do not alter logs in-place
-# 5. redact all log lines as highlighted data indicates
-# 6. code comments explaining usage and internal operations
-# 7. must be fast and burly to accommodate giant log files
-# 8. preserve as much metadata in redacted copies as possible
 
 ## SETUP
 # To add an additional field to redact, add it to the array below.
@@ -45,7 +31,13 @@ create_audit_log() {
 }
 
 update_audit_log(){
-    printf "${1},${2},${3}\n" >> ${auditlogfile};
+    printf "${1##*/},${2},${3}\n" >> ${auditlogfile};
+}
+
+ack() {
+    echo "...done. " 1>&2;
+    echo "   You can access the redacted logs here: ${working_dir}" 1>&2;
+    echo "   You can view the audit log of this process here: ${auditlogfile}" 1>&2;
 }
 
 redact_files() {
@@ -53,7 +45,10 @@ redact_files() {
         cp "$f" "$f~" &&
         gzip -cd "$f~" | sed '/ CC="[^"]*"/ s//CC="REDACTED"/g' | sed '/ SSN="[^"]*"/ s//SSN="REDACTED"/g' | gzip >"$f"
         rm "$f~";
+        redactedcount=`zgrep -o REDACTED "${f}" | wc -l`
+        update_audit_log "${f}" `gunzip -c  "$f" | wc -l` $redactedcount;
     done
+    ack;
 }
 
 redact_directory() {
@@ -63,8 +58,6 @@ redact_directory() {
 
     echo "scrubbing copied files";
     redact_files;
-
-    echo "done. go check out your files in: ${working_dir}";
 }
 
 # accept either a 1+ list of files with -f, or a directory, with -d
@@ -78,7 +71,11 @@ do
             create_audit_log &&
             create_working_dir &&
             for x in ${srcfiles}; do
-                cp -p ${x} ${working_dir}
+                if [[ "${x}" = *".gz" ]] && [[  "${x}" != *"tar.gz" ]]; then
+                    cp -p ${x} ${working_dir}
+                else
+                    echo "skipping file ${x} - untarred, gzipped files only, please." 1>&2;
+                fi
             done
             redact_files;
             ;;
