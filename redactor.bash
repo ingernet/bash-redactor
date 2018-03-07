@@ -23,9 +23,58 @@
 ## USAGE
 usage() { 
     echo "Usage: " 1>&2;
-    echo "$0 -f file1 [file2 file3 etc.] || $0 -d directory_name" 1>&2;
+    echo "Specify a few source files with: $0 -f file1 [file2 file3 etc.]" 1>&2;
+    echo "Specify an entire source directory with: $0 -d directory_name" 1>&2;
     echo ""; exit 0;
 }
+
+redact_file() {
+    $f = ${1}
+    cp "$f" "$f~" &&
+    gzip -cd "$f~" | sed '/CC="[^"]*"/ s//CC="REDACTED"/g' | sed '/SSN="[^"]*"/ s//SSN="REDACTED"/g' | gzip >"$f"
+    rm "$f~";
+}
+
+redact_directory() {
+    # create a subdir of /tmp
+    working_dir="/tmp/redactr_$(date "+%Y%m%d%H%M%S")";
+    mkdir -p ${working_dir};
+    echo "working directory created: ${working_dir}" &&
+
+    # make a copy of your originals
+    echo "creating copy of files from ${1}"
+    sudo cp -p ${1}/*.gz ${working_dir}/
+
+    echo "scrubbing copied files";
+    for f in ${working_dir}/*; do
+        redact_file $
+        # cp "$f" "$f~" &&
+        # gzip -cd "$f~" | sed '/CC="[^"]*"/ s//CC="REDACTED"/g' | sed '/SSN="[^"]*"/ s//SSN="REDACTED"/g' | gzip >"$f"
+        # rm "$f~";
+    done
+
+    echo "done. go check out your files in: ${working_dir}";
+}
+
+# accept either a 1+ list of files with -f, or a directory, with -d
+while getopts "fd:" OPTION
+do
+    case $OPTION in
+        f)
+            echo "You set flag -f"
+            # [[ -n "$gce_name" ]] || usage
+            ;;
+        d)
+            srcdir=${OPTARG}
+            [[ -n "$srcdir" ]] || usage;
+            redact_directory ${srcdir};
+            exit;
+            ;;
+        \?)
+            usage
+            ;;
+    esac
+done
 
 # To add an additional field to redact, add it to the array below.
 redacted_fields=('CC' 'SSN')
@@ -48,46 +97,7 @@ duplicate_dir() {
     cp -pi ${1} ${working_dir}
 }
 
-redact_files() {
-    # copy your logs directory to a subdir of /tmp
-    echo "creating copy of files";
-    working_dir="/tmp/redactr_$(date "+%Y%m%d%H%M%S")";
-    mkdir -p ${working_dir};
-
-    # make a copy of your originals
-    # TODO REPLACE ziplogs with stin
-    sudo cp -p ziplogs/*.gz ${working_dir}/;
-
-    echo "scrubbing copied files";
-    for f in ${working_dir}/*; do
-        cp "$f" "$f~" &&
-        gzip -cd "$f~" | sed '/CC="[^"]*"/ s//CC="REDACTED"/g' | sed '/SSN="[^"]*"/ s//SSN="REDACTED"/g' | gzip >"$f"
-        rm "$f~";
-    done
-
-    echo "done. go check out your files in: ${working_dir}";
-}
 
 
-# accept either a 1+ list of files with -f, or a directory, with -d
-while getopts "fd:" OPTION
-do
-    case $OPTION in
-        f)
-            echo "You set flag -b"
-            exit
-            ;;
-        d)
-            echo "The value of -f is $OPTARG"
-            MYOPTF=$OPTARG
-            echo $MYOPTF
-            exit
-            ;;
-        \?)
-            usage
-            exit
-            ;;
-    esac
-done
 
-redact_files;
+# redact_files;
