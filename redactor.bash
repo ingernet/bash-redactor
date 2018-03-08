@@ -53,8 +53,8 @@ redact_files() {
 
 redact_directory() {
     # make a copy of your originals
-    echo "Copying files from ${1} to the working directory"
-    cp -p ${1}/*.gz ${working_dir}/
+    echo "Copying files from ${1} to the working directory" 1>&2;
+    cp -p "${1}"/*.gz "${working_dir}"/
     redact_files;
 }
 
@@ -87,6 +87,8 @@ do
         d)
             srcdir=${OPTARG}
             [[ -n "$srcdir" ]] || usage;
+            create_audit_log;
+            create_working_dir;
             redact_directory ${srcdir};
             # exit;
             ;;
