@@ -21,7 +21,6 @@ This is optimized for Linux, but will run on OS X. (The `master-sedbuilder` bran
 This is a native bash script. All you need is bash. And love. Bash and love are all you need. And this paddle ball set.
 
 ### Installing
-
 Installation is simple - just `git clone https://github.com/ingernet/bash-redactor.git` into your projects directory.
 
 
