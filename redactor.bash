@@ -7,7 +7,7 @@
 ## SETUP
 # To add an additional field to redact, add it to the array below.
 # TODO GET SEDBUILDER TO USE THIS.
-scrubbed_fields=('CC' 'SSN')
+scrubbed_fields=( 'CC' 'SSN' 'Industry' );
 rightnow=$(date "+%Y%m%d%H%M%S");
 auditlogfile="audit_${rightnow}.csv";
 
@@ -41,13 +41,40 @@ ack() {
 }
 
 redact_files() {
+    # This is an expanded version that allows you to add field names to the "scrubbed_fields" array up at the top.
+    echo "scrubbing copied files";
+    
     for f in ${working_dir}/*; do
-        cp "$f" "$f~" &&
-        gzip -cd "$f~" | sed '/ CC="[^"]*"/ s//CC="REDACTED"/g' | sed '/ SSN="[^"]*"/ s//SSN="REDACTED"/g' | gzip >"$f"
-        rm "$f~";
+        # get its timestamp
+        ot=`date -r "${f}"`;
+        
+        # to have a variable number of seds running on this thing, you just need to open it up.
+        gzip -dq "${f}";
+        flog="${f%.gz}";
+
+        if [ `uname` == "Darwin" ]; then
+            for i in "${scrubbed_fields[@]}"; do
+                sed -i '' "/ ${i}=\"[^\"]*\"/ s// ${i}=\"REDACTED\"/g" "${flog}";
+            done
+        else
+            for i in "${scrubbed_fields[@]}"; do
+                sed -i "/ ${i}=\"[^\"]*\"/ s// ${i}=\"REDACTED\"/g" "${flog}";
+            done
+        fi
+
+        gzip ${flog};
+        
+        # update its timestamp
+        if [ `uname` == "Darwin" ]; then
+            echo "not bothering with timestamp right now" 1>&2;
+        else
+            touch -d "${ot}" {$f};
+        fi
+
         redactedcount=`zgrep -o REDACTED "${f}" | wc -l`
         update_audit_log "${f}" `gunzip -c  "$f" | wc -l` $redactedcount;
     done
+
     ack;
 }
 
@@ -56,7 +83,6 @@ redact_directory() {
     echo "creating copy of files from ${1}"
     cp -p ${1}/*.gz ${working_dir}/
 
-    echo "scrubbing copied files";
     redact_files;
 }
 
