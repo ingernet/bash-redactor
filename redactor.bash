@@ -10,6 +10,8 @@
 scrubbed_fields=( 'CC' 'SSN' 'Industry' );
 rightnow=$(date "+%Y%m%d%H%M%S");
 auditlogfile="audit_${rightnow}.csv";
+working_dir="/tmp/redactor_${rightnow}";
+
 
 ## USAGE
 usage() { 
@@ -21,8 +23,7 @@ usage() {
 
 create_working_dir() {
     # create a subdir of /tmp
-    working_dir="/tmp/redactor_${rightnow}";
-    mkdir -p ${working_dir} &&
+    mkdir -p ${working_dir};
     echo "working directory created: ${working_dir}";
 }
 
@@ -87,7 +88,7 @@ redact_directory() {
 }
 
 # accept either a 1+ list of files with -f, or a directory, with -d
-while getopts ":f:d:" OPTION
+while getopts "f:d:" OPTION
 do
     case $OPTION in
         f)
