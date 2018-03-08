@@ -5,11 +5,10 @@
 
 
 ## SETUP
-# To add an additional field to redact, add it to the array below.
-# TODO GET SEDBUILDER TO USE THIS.
-scrubbed_fields=('CC' 'SSN')
 rightnow=$(date "+%Y%m%d%H%M%S");
 auditlogfile="audit_${rightnow}.csv";
+working_dir="/tmp/redactor_${rightnow}";
+
 
 ## USAGE
 usage() { 
@@ -20,13 +19,13 @@ usage() {
 }
 
 create_working_dir() {
+    echo "Creating a temporary working directory." 1>&2;
     # create a subdir of /tmp
-    working_dir="/tmp/redactor_${rightnow}";
     mkdir -p ${working_dir} &&
-    echo "working directory created: ${working_dir}";
 }
 
 create_audit_log() {
+    echo "Creating audit log." 1>&2;
     printf "FILENAME,LINES_PROCESSED,FIELDS_REDACTED\n" > ${auditlogfile};
 }
 
@@ -41,6 +40,7 @@ ack() {
 }
 
 redact_files() {
+    echo "Scrubbing copied files." 1>&2;
     for f in ${working_dir}/*; do
         cp "$f" "$f~" &&
         gzip -cd "$f~" | sed '/ CC="[^"]*"/ s//CC="REDACTED"/g' | sed '/ SSN="[^"]*"/ s//SSN="REDACTED"/g' | gzip >"$f"
@@ -53,23 +53,29 @@ redact_files() {
 
 redact_directory() {
     # make a copy of your originals
-    echo "creating copy of files from ${1}"
+    echo "Copying files from ${1} to the working directory"
     cp -p ${1}/*.gz ${working_dir}/
-
-    echo "scrubbing copied files";
     redact_files;
 }
 
-# accept either a 1+ list of files with -f, or a directory, with -d
+# RUN
+
+
+
+# accept either a 1+ list of files with -f, or a directory with -d
 while getopts ":f:d:" OPTION
 do
+
+    # Set up the audit log and the temporary working directory
+    create_audit_log &&
+    create_working_dir &&
+
     case $OPTION in
         f)
             srcfiles=${OPTARG};
             [[ -n ${srcfiles} ]] || usage;
             echo "running redactor on: ${srcfiles}";
-            create_audit_log &&
-            create_working_dir &&
+            
             for x in ${srcfiles}; do
                 if [[ "${x}" = *".gz" ]] && [[  "${x}" != *"tar.gz" ]]; then
                     cp -p ${x} ${working_dir}
@@ -82,8 +88,6 @@ do
         d)
             srcdir=${OPTARG}
             [[ -n "$srcdir" ]] || usage;
-            create_audit_log &&
-            create_working_dir &&
             redact_directory ${srcdir};
             # exit;
             ;;
