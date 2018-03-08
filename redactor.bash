@@ -69,7 +69,7 @@ redact_files() {
         if [ `uname` == "Darwin" ]; then
             echo "not bothering with timestamp right now" 1>&2;
         else
-            touch -d "${ot}" {$f};
+            touch -d "${ot}" "${f}";
         fi
 
         redactedcount=`zgrep -o REDACTED "${f}" | wc -l`
