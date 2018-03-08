@@ -43,7 +43,7 @@ redact_files() {
     echo "Scrubbing copied files." 1>&2;
     for f in ${working_dir}/*; do
         cp "$f" "$f~" &&
-        gzip -cd "$f~" | sed '/ CC="[^"]*"/ s//CC="REDACTED"/g' | sed '/ SSN="[^"]*"/ s//SSN="REDACTED"/g' | gzip >"$f"
+        gzip -cd "$f~" | sed '/ CC="[^"]*"/ s// CC="REDACTED"/g' | sed '/ SSN="[^"]*"/ s// SSN="REDACTED"/g' | gzip >"$f"
         rm "$f~";
         redactedcount=`zgrep -o REDACTED "${f}" | wc -l`
         update_audit_log "${f}" `gunzip -c  "$f" | wc -l` $redactedcount;
