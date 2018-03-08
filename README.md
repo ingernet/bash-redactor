@@ -16,7 +16,7 @@ I've provided some sample logs so you can test this code out. To get started:
 
 ### Prerequisites
 
-This is optimized for Linux, but will run on OS X. (The `master-sedbuilder` branch will have problems with maintaining the copied files` timestamps because I haven't gotten around to getting OS X to `touch` them correctly.)
+This is optimized for Linux, but will run on OS X. (The `master-sedbuilder` branch will have problems with maintaining the copied files' timestamps because I haven't gotten around to getting OS X to `touch` them correctly.)
 
 This is a native bash script. All you need is bash. And love. Bash and love are all you need. And this paddle ball set.
 
