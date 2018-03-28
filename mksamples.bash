@@ -11,4 +11,4 @@ while [ $counter -le 10 ]; do
 done
 
 echo "sample files generated in ziplogs/" 1>&2;
-echo "use them by running: `sudo ./redactor.bash -d ziplogs`" 1>&2;
+echo "use them by running: 'sudo ./redactor.bash -d ziplogs'" 1>&2;
